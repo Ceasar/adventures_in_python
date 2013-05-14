@@ -18,7 +18,7 @@ class Bar(Foo):
  
 class FooBar(Foo):
     def __do_something(self):
-        print "Bar is doing something"
+        print "FooBar is doing something"
  
     def trigger(self):
         self.__do_something()
@@ -27,4 +27,4 @@ class FooBar(Foo):
  
 Foo().trigger() # Prints "Foo is doing something"
 Bar().trigger() # Prints "Foo is doing something"
-FooBar().trigger() # Prints "Bar is doing something"
+FooBar().trigger() # Prints "FooBar is doing something"
