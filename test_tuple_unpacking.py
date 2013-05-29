@@ -41,6 +41,21 @@ w, x = {1, 0}
 assert w == 0
 assert x == 1
 
+(r,) = (1,)
+
+assert r == 1
+
+# Note, this is a useful trick if you know a list only has one element
+
+[q] = [1]
+
+assert q == 1
+
+# No luck with sets though
+
+# {p} = {1}
+# Can't assign to literal
+
 # Names can be swapped through multiple assignment
 
 g, h = 1, 2
