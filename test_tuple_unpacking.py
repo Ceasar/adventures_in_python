@@ -29,15 +29,7 @@ m[0:10:2] = range(5)
 
 assert m == [0, 1, 1, 3, 2, 5, 3, 7, 4, 9]
 
-# things that are too long will override and append
-
-aa = range(10)
-
-aa[5:] = range(10)
-
-assert aa == range(5) + range(10)
-
-# we can also splice
+# We can also splice.
 
 ab = range(10)
 
@@ -45,7 +37,24 @@ ab[5:5] = range(10)
 
 assert ab == range(5) + range(10) + range(5, 10)
 
-# overwriting only happens in the designated range
+# Splicing can be useful for prepending to a list.
+# NOTE: I have not researched performance of this yet.
+
+ac = range(10)
+
+ac[0:0] = range(10)
+
+assert ac == range(10) * 2
+
+# Slices that are too long will overwrite _and_ append.
+
+aa = range(10)
+
+aa[5:] = range(10)
+
+assert aa == range(5) + range(10)
+
+# Overwriting only happens in the designated range.
 
 ac = range(10)
 
@@ -53,7 +62,7 @@ ac[5:6] = range(10)
 
 assert ac == range(5) + range(10) + range(6, 10)
 
-# another way of effectively calling `list`
+# Another way of effectively calling `list`.
 
 k = []
 
