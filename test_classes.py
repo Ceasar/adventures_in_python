@@ -1,6 +1,8 @@
 """
 Adventures in inheritance.
 """
+from helpers import assert_raises
+
 
 #  Demonstrate the strange interaction between hidden methods and subclassing.
 
@@ -88,5 +90,22 @@ class LeftLeft(Left, Left):
     pass
 
 assert LeftLeft().trigger() == "Left"
+
+# Calling len on new-style classes raises an AttributeError
+
+
+class LenA:
+    pass
+
+assert_raises(AttributeError, lambda: len(LenA()))
+
+# Calling len on new-style classes raises a TypeError
+
+
+class LenB(object):
+    pass
+
+assert_raises(TypeError, lambda: len(LenB()))
+
 
 # TODO: Adventures with super!
