@@ -39,8 +39,7 @@ class BarFoo(Foo):
     def trigger(self):
         return self.__do_something()
 
-# This raises an error
-# assert BarFoo().trigger() == "Foo"
+assert_raises(AttributeError, lambda: BarFoo().trigger() == "Foo")
 
 # We might say then, that 'Class.method' is public, 'Class._method' is
 # protected, and 'Class.__method' is private.
