@@ -91,21 +91,36 @@ class LeftLeft(Left, Left):
 
 assert LeftLeft().trigger() == "Left"
 
-# Calling len on new-style classes raises an AttributeError
 
+# Calling len on new-style classes raises an AttributeError
 
 class LenA:
     pass
 
 assert_raises(AttributeError, lambda: len(LenA()))
 
-# Calling len on new-style classes raises a TypeError
 
+# Calling len on new-style classes raises a TypeError
 
 class LenB(object):
     pass
 
 assert_raises(TypeError, lambda: len(LenB()))
 
+
+# properties are actually classes
+# http://docs.python.org/2/reference/datamodel.html#implementing-descriptors
+
+class test_property(property):
+    def __get__(self, instance, owner):
+        return 1
+
+
+class PropFoo(object):
+    @test_property
+    def hi(self):
+        return 0
+
+assert PropFoo().hi == 1
 
 # TODO: Adventures with super!
