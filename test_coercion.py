@@ -43,3 +43,18 @@ assert xs * False == []
 
 assert {} != []
 assert bool({}) == bool([])
+
+
+# Strings ints are converted to numbers
+
+assert int('10') == 10
+
+# String booleans are treated as regular strings
+
+assert bool('False') == True
+
+
+# backticks coerces things to repr
+# (this is deprecated; use repr)
+
+assert `[1, 2, 3]` == repr([1, 2, 3])
