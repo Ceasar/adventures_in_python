@@ -1,6 +1,7 @@
 """
 Behavior of tuple unpacking is fun.
 """
+from helpers import assert_raises
 
 a, b = 1, 2
 
@@ -146,11 +147,20 @@ j, k = k, j = 1, 2
 assert j == 2
 assert k == 1
 
+
+# Expressions are evaluated first though
+
+def _():
+    a, a = 1, a + 1
+
+assert_raises(NameError, _)
+
 # We can exploit this
 
 k, k[:] = [], 'abc'
 
 assert k == ['a', 'b', 'c']
+
 
 # Functions can match tuples, but not anything else
 
