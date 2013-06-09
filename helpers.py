@@ -7,4 +7,7 @@ def assert_raises(e, func):
     except e:
         assert True
     except Exception as g:
-        assert False, g
+        assert False, "Wrong error raised: %s" % g
+    else:
+        if e is not None:
+            assert False, "No error raised."
