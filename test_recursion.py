@@ -281,9 +281,86 @@ assert_raises(None, lambda: fib_tr2(1000))
 # tail-recursive style seems to force us to redesign our algorithms into
 # bottom-up implementations which mostly avoid the need.
 
+# Another way of doing things is continuation passing style.
+
+# CPS is a general method for turning any recursive function into a
+# tail-recursive variant. However, in order to take a tail-recursive function
+# using CPS and "compile" it to iterative code, we have to figure out how to
+# compile lambdas. It can be done, and in fact, many compilers for functional
+# languages work this way.
+
+
+def _fact_cps(f, n):
+    def _(x):
+        yield f(n * x)
+    yield f(1) if n == 0 else _fact_cps(_, n - 1)
+fact_cps = tail_recursive(_fact_cps)
+
+
+def _fib_cps(f, n):
+    def _((a, b)):
+        yield f((b, a + b))
+    return f((0, 1)) if n == 0 else _fib_cps(_, n - 1)
+fib_cps = tail_recursive(_fib_cps)
+
+
+def idx(x):
+    return x
+
+
+assert fact_cps(idx, 10) == fact(10)
+assert_raises(None, lambda: fact_cps(idx, 1000))
+
+assert fib_cps(idx, 10)[0] == fib(10)
+assert_raises(RuntimeError, lambda: fib_cps(idx, 1000))
+
+# We can also do some crazy stuff by just directing the call stack ourselves.
+# This is kind of pointless; as it is not really memory efficient anyway, but
+# it can be useful for mechanically translating recursive algorithms into
+# iterative ones.
+
+
+def _fact_x(call_stack, rv, f):
+    if len(call_stack) == 0:
+        yield rv
+    else:
+        n = call_stack.pop()
+        if n == 1:
+            yield _fact_x(call_stack, rv, f)
+        else:
+            call_stack.append(n - 1)
+            yield _fact_x(call_stack, f(rv, n), f)
+fact_x = lambda n: tail_recursive(_fact_x)([n], 1, operator.mul)
+
+assert fact_x(10) == fact(10)
+assert_raises(None, lambda: fact_x(1000))
+
+# The fib translation is messier still because the stack needs to keep track
+# of where to go next on the stack.
+
+
+def _fib_x(call_stack, rv, f):
+    if len(call_stack) == 0:
+        yield rv
+    else:
+        n = call_stack.pop()
+        if n in (0, 1):
+            yield _fib_x(call_stack, f(rv, n), f)
+        else:
+            call_stack.append(n - 1)
+            call_stack.append(n - 2)
+            yield _fib_x(call_stack, rv, f)
+
+fib_x = lambda n: tail_recursive(_fib_x)([n], 0, operator.add)
+
+assert fib_x(10) == fib(10)
+# NOTE: This is NOT bottom up; this is a pure translation. It takes a while.
+# assert_raises(None, lambda: fib_x(1000))
+
 # ---
 
 # [1]: http://www.artima.com/weblogs/viewpost.jsp?thread=98196
 # [2]: http://paulbutler.org/archives/tail-recursion-in-python/
 # [3]: http://neopythonic.blogspot.com/2009/04/tail-recursion-elimination.html
 # [4]: http://docs.python.org/2/library/sys.html#sys.setrecursionlimit
+# [5]: http://www.cis.upenn.edu/~cis39903/static/10-rec-to-iter.pdf
