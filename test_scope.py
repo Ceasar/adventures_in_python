@@ -253,6 +253,22 @@ def warning():
     pass
 
 
-
 # del x
 # name 'x' is not defined
+
+# A clever mess with names and references, from Guido himself:
+# http://neopythonic.blogspot.com/2009/04/tail-recursion-elimination.html
+
+
+def f(x):
+    if x > 0:
+        return f(x-1)
+    return 0
+
+g = f
+
+
+def f(x):
+    return x
+
+assert g(5) == 4
