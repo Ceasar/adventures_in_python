@@ -3,6 +3,10 @@ from helpers import assert_raises
 # Recursion + Python
 # =============================
 
+# A recursive function has one or more base cases, inputs for which the
+# function produces input trivially, and one or recursive cases, for which the
+# program recurs.
+
 
 # Like any other functional language, Python allows recursion.
 
@@ -17,18 +21,19 @@ def fib(n):
 
 assert fib(10) == 55
 
+
 # Recursion is useful because it is simple to reason about (using induction).
 # Algorithms written in this style are often more concise, and tend to specify
 # _what_ values they need, rather than _how_ to generate them, usually relying
 # on the interpreter itself for efficiency.
 #
-# In that sense, using recursion in Python is often ill-advised. Guido, the
+# In that sense, using recursion in Python is often ill-advised. Guido, our
 # BDFL, does not really care for purity in programs, and trades it gladly
 # for a language that is pleasant to use. To that end, Guido has actually
 # set some limits on recursion that make it unpleasant to use.
 #
 # The Call Stack
-# ----------------------
+# --------------
 #
 # When a function is called, the computer must "remember" the place it was
 # called from, the return address, so that it can return to that location with
@@ -42,7 +47,7 @@ assert fib(10) == 55
 # Consequently, Python sets a maximum limit on the interpreter stack to prevent
 # overflows on the C stack that might crash Python.
 #
-# (NOTE: The highest possible limit is plat-form dependent and setting a
+# (NOTE: The highest possible limit is platform dependent and setting a
 # too-high limit can lead to a crash.)
 
 import sys
@@ -67,6 +72,23 @@ def fact_r(n):
 assert fact_r(10) == fact(10)
 assert_raises(None, lambda: fact_r(1000))
 
+
+# Note, fib is multiple recursive (it makes multiple calls to itself) which
+# makes it difficult to translate. At least for now, I am expressing it as a
+# bottom-up variant rather than top-down.
+
+# > Single recursion is often much more efficient than multiple recursion, and can generally be replaced by an iterative computation, running in linear time and requiring constant space. Multiple recursion, by contrast, may require exponential time and space, and is more fundamentally recursive, not being able to be replaced by iteration without an explicit stack.
+# > Multiple recursion can sometimes be converted to single recursion. It can be computed by single recursion by passing two successive values as parameters. This is more naturally framed as corecursion, building up from the initial values, at each step track two successive values
+# Indirect recursion is when multiple functions call each other in a loop.
+# See: Hanoi
+
+# Structural versus generative recursion
+# Structural recursion decomposes arguments into structural components and then process those components
+# The argument to each recursive call is the content of a field of the original input
+# These can be shown to terminate using structural induction
+# Generative recursion generate an entirely new piece of data and recur on it.
+# gcd is an example; it just generates a new number (the size of the structure is the same, but it is conceptually "smaller").
+# It requires a predicate to terminate clearly.
 
 def fib_r(n):
     def f((a, b), _):
@@ -255,6 +277,13 @@ def tail_recursive(func):
 # achieves laziness using generators rather than lambdas.
 
 
+def _gcd(x, y):
+    yield x if y == 0 else _gcd(y, x % y)
+gcd = tail_recursive(_gcd)
+
+assert gcd(2000, 900) == 100
+
+
 def _fact(n, r=1):
     yield r if n == 0 else _fact(n - 1, n * r)
 fact_tr2 = tail_recursive(_fact)
@@ -281,44 +310,58 @@ assert_raises(None, lambda: fib_tr2(1000))
 # tail-recursive style seems to force us to redesign our algorithms into
 # bottom-up implementations which mostly avoid the need.
 
-# Another way of doing things is continuation passing style.
+# Another way of doing things is continuation passing style (CPS).
 
 # CPS is a general method for turning any recursive function into a
-# tail-recursive variant. However, in order to take a tail-recursive function
-# using CPS and "compile" it to iterative code, we have to figure out how to
-# compile lambdas. It can be done, and in fact, many compilers for functional
-# languages work this way.
+# tail-recursive variant.
+#
+# This works especially well with Towers of Hanoi (which would otherwise be
+# difficult to write in tail recursive style.
+
+id = lambda x: x
+
+
+def cps(f):
+    def wrapped(*args):
+        return tail_recursive(f)(id, *args)
+    return wrapped
+
+
+def _hanoi(f, n):
+    def g(x):
+        yield f(2 * x + 1)
+    yield f(1) if n == 1 else _hanoi(g, n-1)
+hanoi = cps(_hanoi)
+
+assert hanoi(1) == 1
+assert hanoi(4) == 15
 
 
 def _fact_cps(f, n):
-    def _(x):
-        yield f(n * x)
-    yield f(1) if n == 0 else _fact_cps(_, n - 1)
-fact_cps = tail_recursive(_fact_cps)
+    def g(x):
+        yield f(x * n)
+    yield f(1) if n == 0 else _fact_cps(g, n - 1)
+fact_cps = cps(_fact_cps)
 
 
 def _fib_cps(f, n):
-    def _((a, b)):
+    def g((a, b)):
         yield f((b, a + b))
-    return f((0, 1)) if n == 0 else _fib_cps(_, n - 1)
-fib_cps = tail_recursive(_fib_cps)
+    yield f((0, 1)) if n == 0 else _fib_cps(g, n - 1)
+fib_cps = cps(_fib_cps)
 
 
-def idx(x):
-    return x
+assert fact_cps(10) == fact(10)
+assert_raises(None, lambda: fact_cps(1000))
 
+assert fib_cps(10)[0] == fib(10)
+assert_raises(None, lambda: fib_cps(1000)[0])
 
-assert fact_cps(idx, 10) == fact(10)
-assert_raises(None, lambda: fact_cps(idx, 1000))
-
-assert fib_cps(idx, 10)[0] == fib(10)
-assert_raises(RuntimeError, lambda: fib_cps(idx, 1000))
 
 # We can also do some crazy stuff by just directing the call stack ourselves.
 # This is kind of pointless; as it is not really memory efficient anyway, but
 # it can be useful for mechanically translating recursive algorithms into
 # iterative ones.
-
 
 def _fact_x(call_stack, rv, f):
     if len(call_stack) == 0:
@@ -334,9 +377,6 @@ fact_x = lambda n: tail_recursive(_fact_x)([n], 1, operator.mul)
 
 assert fact_x(10) == fact(10)
 assert_raises(None, lambda: fact_x(1000))
-
-# The fib translation is messier still because the stack needs to keep track
-# of where to go next on the stack.
 
 
 def _fib_x(call_stack, rv, f):
@@ -356,6 +396,37 @@ fib_x = lambda n: tail_recursive(_fib_x)([n], 0, operator.add)
 assert fib_x(10) == fib(10)
 # NOTE: This is NOT bottom up; this is a pure translation. It takes a while.
 # assert_raises(None, lambda: fib_x(1000))
+
+
+# We can also look at more interesting examples, like the Ackerman function
+
+def ackermann(x, y):
+    return ackermann(x, ackermann(x, y - 1))
+
+
+def _ackermann(call_stack, rv):
+    if len(call_stack) == 0:
+        yield rv
+    else:
+        m, n = call_stack.pop()
+        if m == 0:
+            yield _ackermann(call_stack, n + 1)
+        elif n == 0:
+            call_stack.append((m - 1, 1))
+            yield _ackermann(call_stack, rv)
+        else:
+            # EEK
+            yield _ackermann(call_stack, rv)
+
+
+# ---
+
+# The job of the recursive cases can be seen as breaking down complex inputs
+# into simpler ones.
+# NOTE: interesting idea on complexity
+
+# - Algebraic data types
+# - Inductively defined data (nats, linked list, bnf)
 
 # ---
 
