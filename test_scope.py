@@ -1,15 +1,187 @@
 from nose.tools import assert_raises
 
 
-# *Names* refer to objects.
+# *Names* refer to values.
+
+# Names can be bound to values via the assignment operator.
 
 x = 1
 
-# Names can refer to themselves.
+# Many names may refer to the same value.
+
+y = 1
+
+# To check if two names refer to the same value, use `is`.
+
+assert x is y
+
+# NOTE: Immutable types should be always be checked using equality, not
+# identity. Immutable values are not guaranteed to always have the same
+# identity.
+#
+# Notably, Python interns small ints (-5 to 256), but not large ints.
+
+assert 0 - 5 is -5
+assert 0 - 6 is not -6
+
+assert 255 + 1 is 256
+assert 256 + 1 is not 257
+
+# Assigning a name to a value never copies values: it either makes new ones
+# or reuses existing ones.
+#
+# In the case above, there are not distinct values for `x` and `y`, only
+# two names for the value `1`.
+
+# This is more obvious with mutable data types.
+
+xs = [1, 2, 3]
+ys = xs
+xs.append(4)
+
+assert ys == [1, 2, 3, 4]
+
+# On the other hand, with immutable types, new values are created and assigned.
+
+x = 1
+y = x
+x = x + 1
+
+assert x != y
+
+# The difference is that with mutable types, the value is mutated, whereas
+# with immutable types, the name is rebound.
+
+# Note, `+=` means different things for mutable and immutable types.
+
+xs = [1]
+ys = xs
+xs += [2]
+assert ys == [1, 2]
+xs = xs + [3]
+assert ys == [1, 2]
+
+x = 1
+y = x
+x += 1
+assert y == 1
+
+x = 1
+y = x
+x = x + 1
+assert y == 1
+
+
+# References are more general than just names.
+
+# A list, for instance, is actually a list of references, not values.
+#
+# Thus, it is possible for a list to "contain" itself.
 
 l = []
 l.append(l)
-assert l == l[0]
+
+assert l in l
+
+
+# There are many ways to bind names besides assignment:
+
+# - formal parameters to functions
+
+def foo(x):
+    assert x
+
+foo(1)
+
+
+# - import statements
+
+import os
+
+assert os
+
+
+# - class and function definitions
+
+def special_foo():
+    pass
+
+assert special_foo
+
+# - `for` loop header
+
+for y in range(10):
+    pass
+
+assert y
+
+# NOTE: For performance reasons, list comprehensions bind names.
+
+q = [u for u in range(10)]
+
+assert u
+
+# - except clause header
+
+try:
+    raise Exception()
+except Exception as e:
+    pass
+
+assert e
+
+# - with statement
+
+with open('/dev/null', 'w') as f:
+    pass
+
+assert f
+
+# The ``import`` statement of the form ``from ... import *`` binds all names
+# defined in the imported module, except those beginning with an underscore.
+# The form may only be used at the module level.
+
+
+def warning():
+    # from os import *
+    # SyntaxWarning: import * only allowed at module level
+    pass
+
+# Python passes functions arguments by assigning argument names to parameters,
+# (call-by-reference) not by copying values (call-by-value).
+#
+# Therefore, mutating a value in a function will affect all references to it.
+
+
+def foo(ys):
+    ys.pop()
+
+xs = [1, 2, 3]
+
+foo(xs)
+
+assert xs == [1, 2]
+
+# Consequently, default mutable types can lead to unexpected behavior.
+
+
+def foo(ys=[]):
+    ys.append(1)
+    return len(ys)
+
+assert foo() == 1
+assert foo([]) == 1
+assert foo() == 2
+
+# Note, `del` deletes references, not values.
+
+x = y = [1]
+
+del x
+
+assert y == [1]
+assert 'x' not in globals()
+
 
 # A *block* is a piece of Python program text that is executed as a unit.
 
@@ -183,78 +355,8 @@ def unbound_local_1():
 def test_unbound_local_1():
     assert_raises(UnboundLocalError, unbound_local_1)
 
-# The following constructs bind names:
-
-# - formal parameters to functions
 
 
-def foo(x):
-    assert x
-
-foo(1)
-
-# - import statements
-
-import os
-
-assert os
-
-# - class and function definitions
-
-
-def special_foo():
-    pass
-
-assert special_foo
-
-# - assignment
-
-z = 1
-
-assert z
-
-# - `for` loop header
-
-for y in range(10):
-    pass
-
-assert y
-
-# NOTE: this also includes list comprehensions
-
-q = [u for u in range(10)]
-
-assert u
-
-# - except clause header
-
-try:
-    raise Exception()
-except Exception as e:
-    pass
-
-assert e
-
-# - with statement
-
-with open('/dev/null', 'w') as f:
-    pass
-
-assert f
-
-# The ``import`` statement of the form ``from ... import *`` binds all names
-# defined in the imported module, except those beginning with an underscore.
-# The form may only be used at the module level.
-
-
-def warning():
-    # from os import *
-    # SyntaxWarning: import * only allowed at module level
-    pass
-
-
-# del x
-# name 'x' is not defined
 
 # A clever mess with names and references, from Guido himself:
 # http://neopythonic.blogspot.com/2009/04/tail-recursion-elimination.html
@@ -272,3 +374,5 @@ def f(x):
     return x
 
 assert g(5) == 4
+
+# [1]: http://nedbatchelder.com/text/names.html
