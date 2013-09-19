@@ -1,9 +1,9 @@
 
 
-def assert_raises(e, func):
+def assert_raises(e, func, *args):
     """Assert an expression raises a given type of exception."""
     try:
-        func()
+        func(*args)
     except e:
         assert True
     except Exception as g:
