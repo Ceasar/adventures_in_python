@@ -13,4 +13,13 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   introduction
+
+-------
+Grammar
+-------
+
+.. toctree::
+   :maxdepth: 2
+
    grammar/glyphs
