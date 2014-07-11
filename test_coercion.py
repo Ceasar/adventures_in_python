@@ -49,3 +49,17 @@ assert bool('False') == True
 # (this is deprecated; use repr)
 
 assert `[1, 2, 3]` == repr([1, 2, 3])
+
+
+# __getitem__, typically used for implementing dict like indexing, is also used
+# for iteration when __iter__ isn't present. The protocol specifies to
+# repeatedly call __getitem__ with increasingly large values of ``n`` until an
+# IndexError is raised. This suggests that 
+
+class X():
+    def __getitem__(self, n):
+        if n < 10:
+            return n
+        raise IndexError()
+
+assert list(X()) == range(10)
