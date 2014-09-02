@@ -8,6 +8,16 @@ a, b = 1, 2
 assert a == 1
 assert b == 2
 
+# Tuple unpacking works with *any* iterable
+
+a, b = xrange(2)
+
+assert a == 0 and b == 1
+
+k1, k2 = {'a': 0, 'b': 1}
+
+assert k1 == 'a' and k2 == 'b'
+
 # Note it is actually assignment
 
 o = [1, 2]
