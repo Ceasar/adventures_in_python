@@ -14,9 +14,11 @@ a, b = xrange(2)
 
 assert a == 0 and b == 1
 
-k1, k2 = {'a': 0, 'b': 1}
+# This can be surprising. What should the value of ``a`` be in the following?
 
-assert k1 == 'a' and k2 == 'b'
+a = b, c = {'x': 1, 'y': 2}
+
+assert b == 'x' and c == 'y' and a == {'x': 1, 'y': 2}
 
 # Note it is actually assignment
 
