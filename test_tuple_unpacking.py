@@ -122,6 +122,7 @@ assert x == 1
 assert r == 1
 
 # Note, this is a useful trick if you know a list only has one element
+# This raises a ValueError if the list on the right does not have one element.
 
 [q] = [1]
 
