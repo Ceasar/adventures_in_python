@@ -55,7 +55,7 @@ assert ab == range(5) + range(10) + range(5, 10)
 
 ac = range(10)
 
-ac[0:0] = range(10)
+ac[:0] = range(10)
 
 assert ac == range(10) * 2
 
