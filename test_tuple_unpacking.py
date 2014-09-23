@@ -160,13 +160,41 @@ j, k = k, j = 1, 2
 assert j == 2
 assert k == 1
 
+# This can be surprising sometimes. The following is valid:
+
+a = {}
+a['x'] = a = {}
+
+assert a == {}
+
+
+# But the following throws a TypeError (since ``a`` is assigned to 1 first):
+
+def _a():
+    a = {}
+    a = a['x'] = 1
+
+assert_raises(TypeError, _a)
+
+# This means that the following is valid python. It will create a infinitely
+# recursive dictionary.
+
+aaa = aaa[0] = {}
+assert aaa[0] == aaa
+
+# Likewise the following creates an infinite list:
+
+aab = aab[0] = [0]
+
+assert aab[0] == aab
+
 
 # Expressions are evaluated first though
 
-def _():
+def _b():
     a, a = 1, a + 1
 
-assert_raises(NameError, _)
+assert_raises(NameError, _b)
 
 # We can exploit this
 
