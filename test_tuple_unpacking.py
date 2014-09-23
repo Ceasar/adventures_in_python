@@ -18,7 +18,7 @@ assert a == 0 and b == 1
 
 a = b, c = {'x': 1, 'y': 2}
 
-assert b == 'x' and c == 'y' and a == {'x': 1, 'y': 2}
+assert {b, c} == {'x', 'y'} and a == {'x': 1, 'y': 2}
 
 # Note it is actually assignment
 
