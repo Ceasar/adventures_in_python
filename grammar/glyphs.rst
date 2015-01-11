@@ -50,3 +50,13 @@ The glyphs for sets and dictionaries are potentially ambiguous::
     a, b = {1: 'a', 2: 'b'}, {1, 2}
     c, d = {1: 'a'}, {1}
     e, f = {}, {} # are these dictionaries or sets?
+
+The glyphs for are list comprehensions, set comprehensions, and generator
+expressions are inconsistent-- one would expect tuple comprehensions as well::
+
+    >>> [x for x in range(5)]
+    [0, 1, 2, 3, 4]
+    >>> {x for x in range(5)}
+    set([0, 1, 2, 3, 4])
+    >>> (x for x in range(5))
+    <generator object <genexpr> at 0x10698feb0>
