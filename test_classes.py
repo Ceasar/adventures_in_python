@@ -122,4 +122,9 @@ class PropFoo(object):
 
 assert PropFoo().hi == 1
 
+# Some types are circular
+
+assert isinstance(object, type)
+assert isinstance(type, object)
+
 # TODO: Adventures with super!
